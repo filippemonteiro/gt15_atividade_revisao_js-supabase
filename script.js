@@ -1,114 +1,63 @@
-const supabaseUrl = 'https://xabnynfkexvukvakcfeh.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhYm55bmZrZXh2dWt2YWtjZmVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYwMzE0OTQsImV4cCI6MjA2MTYwNzQ5NH0.5ObUAyQavWkeHT0xwdeaoRMIcNSy9NHCGNPxoGimLp4';
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+const SUPABASE_URL = "https://dnahbahhkckatsijdggw.supabase.co";
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRuYWhiYWhoa2NrYXRzaWpkZ2d3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3MjM5NDIsImV4cCI6MjA2MjI5OTk0Mn0.hQ857wQ8vMP1hBTw0PvVVypbHf25kFvZI9yoB5NWzFY";
 
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Array de produtos
+let produtos = [];
+
 async function carregarProdutos() {
-  const { data, error } = await supabase
-    .from('produtos')
-    .select('*');
+  const container = document.getElementById("produtos");
+  container.innerHTML = "<p>Carregando produtos...</p>";
+
+  const { data, error } = await client.from("produtos").select("*");
 
   if (error) {
     console.error("Erro ao buscar produtos:", error);
+    container.innerHTML = "<p>Erro ao carregar produtos.</p>";
     return;
   }
 
-  exibirProdutos(data);
+  produtos = data;
+  exibirProdutos(false);
 }
 
-function exibirProdutos(produtos) {
-  const container = document.querySelector('#produtos');
+function exibirProdutos(comDesconto = false) {
+  const container = document.getElementById("produtos");
   container.innerHTML = "";
 
-  produtos.forEach(produto => {
-    container.innerHTML += `
-      <div class="produto">
-        <img src="${produto.imagem}" alt="${produto.nome}">
-        <h3>${produto.nome}</h3>
-        <p>R$ ${produto.preco.toFixed(2)}</p>
-      </div>
-    `;
-  });
-}
+  produtos.forEach((p) => {
+    const precoOriginal = Number(p.preco).toFixed(2);
+    const precoFinal = comDesconto ? (p.preco * 0.9).toFixed(2) : null;
 
-// Chama ao iniciar
-carregarProdutos();
+    const card = document.createElement("div");
+    card.classList.add("produto");
 
+    const nome = document.createElement("h3");
+    nome.textContent = p.nome;
 
+    const preco = document.createElement("p");
+    preco.innerHTML = `<s>R$ ${precoOriginal}</s>`;
 
-function formataPreco(preco) {
-  return preco.toLocaleString('pt-BR', 
-  { 
-    style: 'currency', 
-    currency: 'BRL' 
-  })
-}
+    card.appendChild(nome);
+    card.appendChild(preco);
 
-function renderizarProdutos() {
-  const produtosContainer = document.getElementById('produtos');
+    const desconto = document.createElement("p");
 
-  produtosContainer.innerHTML = '';
-
-  const produtosHTML = produtos.map(produto => {
-    const produtoCard = document.createElement('div');
-    produtoCard.className = 'produto-card';
-
-    const produtoInfo = document.createElement('div');
-    produtoInfo.className = 'produto-info';
-
-    const produtoNome = document.createElement('h3');
-    produtoNome.className = 'produto-nome';
-    produtoNome.textContent = produto.nome
-
-    const produtoDescricao = document.createElement('p');
-    produtoDescricao.className = 'produto-descricao';
-    produtoDescricao.textContent = produto.descricao
-
-    const produtoPreco = document.createElement('div');
-    produtoPreco.className = 'produto-preco';
-    
-    if (produto.temDesconto) {
-      const precoOriginal = document.createElement('span');
-      precoOriginal.className = 'preco-original';
-      precoOriginal.textContent = formataPreco(produto.precoOriginal);
-
-      const precoDesconto = document.createElement('span');
-      precoDesconto.className = 'preco-desconto';
-      precoDesconto.textContent = formataPreco(produto.preco);
-
-      produtoPreco.appendChild(precoOriginal);
-      produtoPreco.appendChild(precoDesconto);
+    if (comDesconto) {
+      desconto.innerHTML = `<strong>R$ ${precoFinal}</strong> (10% OFF)`;
     } else {
-      produtoPreco.textContent = formataPreco(produto.preco);
+      desconto.textContent = "Clique no botão para aplicar desconto";
+      desconto.style.color = "gray";
     }
-    produtoInfo.appendChild(produtoNome);
-    produtoInfo.appendChild(produtoDescricao);
-    produtoInfo.appendChild(produtoPreco);
 
-    produtoCard.appendChild(produtoInfo);
-
-    return produtoCard;
+    card.appendChild(desconto);
+    container.appendChild(card);
   });
-
-  produtosHTML.forEach(card => {
-    produtosContainer.appendChild(card);
-  });
-
 }
 
-function aplicarDesconto() {
-  produtos.forEach(produto => {
-    if (!produto.temDesconto) {
-      produto.precoOriginal = produto.preco;
-      produto.preco = produto.preco * 0.9;
-      produto.temDesconto = true;
-    }
-  });
+document.getElementById("aplicarDesconto").addEventListener("click", () => {
+  exibirProdutos(true);
+});
 
-  renderizarProdutos()
-}
-
-document.getElementById('aplicarDesconto').addEventListener('click', aplicarDesconto);
-
-document.addEventListener('DOMContentLoaded',  renderizarProdutos);
+carregarProdutos();
