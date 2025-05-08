@@ -1,46 +1,40 @@
+const supabaseUrl = 'https://xabnynfkexvukvakcfeh.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhYm55bmZrZXh2dWt2YWtjZmVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYwMzE0OTQsImV4cCI6MjA2MTYwNzQ5NH0.5ObUAyQavWkeHT0xwdeaoRMIcNSy9NHCGNPxoGimLp4';
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+
 // Array de produtos
-const produtos = [
-    {
-        id: 1,
-        nome: "Smartphone Galaxy S23",
-        descricao: "Smartphone com tela AMOLED de 6.1 polegadas, 8GB RAM, 128GB armazenamento.",
-        preco: 4999.99,
-        precoOriginal: 4999.99,
-        temDesconto: false
-    },
-    {
-        id: 2,
-        nome: "Notebook Ultrabook Pro",
-        descricao: "Notebook com processador Intel i7, 16GB RAM, 512GB SSD, tela Full HD de 15.6 polegadas.",
-        preco: 6499.90,
-        precoOriginal: 6499.90,
-        temDesconto: false
-    },
-    {
-        id: 3,
-        nome: "Smart TV 4K 55\"",
-        descricao: "Smart TV com resolução 4K, 55 polegadas, HDR, sistema operacional webOS.",
-        preco: 3299.00,
-        precoOriginal: 3299.00,
-        temDesconto: false
-    },
-    {
-        id: 4,
-        nome: "Fone de Ouvido Bluetooth",
-        descricao: "Fone de ouvido sem fio com cancelamento de ruído, bateria de longa duração.",
-        preco: 899.90,
-        precoOriginal: 899.90,
-        temDesconto: false
-    },
-    {
-        id: 5,
-        nome: "Câmera DSLR Profissional",
-        descricao: "Câmera DSLR com sensor de 24.2MP, gravação em 4K, Wi-Fi e Bluetooth integrados.",
-        preco: 5899.00,
-        precoOriginal: 5899.00,
-        temDesconto: false
-    }
-];
+async function carregarProdutos() {
+  const { data, error } = await supabase
+    .from('produtos')
+    .select('*');
+
+  if (error) {
+    console.error("Erro ao buscar produtos:", error);
+    return;
+  }
+
+  exibirProdutos(data);
+}
+
+function exibirProdutos(produtos) {
+  const container = document.querySelector('#produtos');
+  container.innerHTML = "";
+
+  produtos.forEach(produto => {
+    container.innerHTML += `
+      <div class="produto">
+        <img src="${produto.imagem}" alt="${produto.nome}">
+        <h3>${produto.nome}</h3>
+        <p>R$ ${produto.preco.toFixed(2)}</p>
+      </div>
+    `;
+  });
+}
+
+// Chama ao iniciar
+carregarProdutos();
+
 
 
 function formataPreco(preco) {
